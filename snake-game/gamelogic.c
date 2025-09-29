@@ -15,7 +15,31 @@ get_vga
 set_color
 set_time
 */
-//def main
+/*def main{
+  initialize:
+    create game screen
+    create snake
+    spawn first apple
+    start timer and interrupts
+  while(1) {
+    check for collision with:
+      apple
+      snake
+      wall
+    move snake: 
+      interrupts and timer
+      snake position
+      button press
+      switch value
+    spawn new apple when current eaten:
+      snake position
+      apple position
+      spawn apple
+    check for victory:
+      unable to spawn apple/snake certain length (entire screen)
+
+  }
+}*/
 
 
 #include "gameobjects.h"
