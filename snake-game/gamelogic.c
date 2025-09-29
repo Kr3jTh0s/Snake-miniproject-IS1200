@@ -24,8 +24,6 @@ set_time
 
 
 
-
-
 void game_init(){
     /*  initialize game values such as snake length and such
         snake.length = const
@@ -94,8 +92,8 @@ void check_collision(){
 }
 
 void add_score(){
-    /*  adds score of eaten apple to a value that is displayed on 
-        7 segment display */ 
+    /*  adds score of eaten apple and update 7 segment display to
+        display score */ 
 }
 
 void increase_length(){
