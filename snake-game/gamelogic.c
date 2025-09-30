@@ -45,8 +45,43 @@ set_time
 #include "gameobjects.h"
 #include <stdint.h>
 
+//kan flytta på.
+#define VGA_WIDTH 320
+#define VGA_HEIGHT 240
+#define block_width 32
+#define block_height 24
+#define VGA_BASE 0x08000000
+#define VGA_CTRL ((volatile uint32_t*) 0x04000100)
+volatile uint8_t* VGA = (volatile uint8_t*) VGA_BASE
+volatile uint32_t* *VGA_CTRL = VGA_CTRL;
 
+void show_framebuffer(){
+	VGA_CTRL[1] = (uint32_t) VGA;
+    VGA_CTRL[0] = 0;
+}
 
+void draw_block(int grid_x, int grid_y, uint8_t color){
+	int position_x = grid_x * block_width;
+	int position_y = grid_y * block_height;
+	for(int y = 0; y < 24; y++){
+		for(int x = 0; x < 32; x++){
+			VGA[(position_y + y) * 320 + (position_x + x)] = color;
+		}
+	}
+	
+}
+
+void create_field(int color){
+	for (int y = 0; y < 10; y++) {
+        for (int x = 0; x < 10; x++) {
+            draw_block(x, y, color);
+        }
+    }
+}
+
+void create_snake(){
+	draw_block(5, 5, 0x1C);	
+}
 
 void game_init(){
     /*  initialize game values such as snake length and such
@@ -60,6 +95,11 @@ void game(){
     /*  main function. contains loop that runs the game
         move_snake()
         check_collision() */
+		
+		//att testa
+		create_field(0x00);
+		create_snake();
+		show_framebuffer();
 }
 
 /* Below is the function that will be called when an interrupt is triggered. */
