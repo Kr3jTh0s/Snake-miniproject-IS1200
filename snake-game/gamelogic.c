@@ -145,7 +145,7 @@ void game(){
         check_collision() */
 		
 		//att testa
-		create_field(0x00);
+		create_field(0x00);//svart bakgrund
 		create_snake();
 }
 
