@@ -69,7 +69,7 @@ int main()
 {
   labinit(); // initialize timer + interrupts
 
-  for (int y = 0; y < 240; y++)
+  for (int y = 0; y < 480; y++)
   {
     for (int x = 0; x < 320; x++)
     {
