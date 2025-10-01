@@ -50,7 +50,7 @@ static inline void count_LEDs(int my_time)
 }
 
 
-int VGA()
+int VGA_function() // placeholder namn
 {
   volatile char *VGA = (volatile char *)VGA_SCREEN_BUF_BASE_ADDR;
   for (int i = 0; i < 320 * 480; i++)

@@ -38,7 +38,7 @@ int countLED;
 int timeoutcount;
 int mytime;
 
-int VGA();
+int VGA_function();
 
 typedef struct Point{
     int x;

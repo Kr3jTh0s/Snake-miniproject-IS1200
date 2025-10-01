@@ -49,7 +49,7 @@ int main()
   // Call labinit()
   labinit();
 
-  VGA();
+  VGA_function();
 
   // Enter a forever loop
   // while (1)
