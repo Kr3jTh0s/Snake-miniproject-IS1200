@@ -35,8 +35,8 @@ extern void enable_interrupt(void);
 #define MAX_SNAKE_LENGTH 100
 
 int countLED;
-int timeoutcount;
-int mytime;
+// int timeoutcount;
+// int mytime;
 
 void handle_interrupt(unsigned cause);
 int VGA_function();
