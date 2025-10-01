@@ -149,6 +149,22 @@ void game(){
 		create_snake();
 }
 
+void handle_interrupt(unsigned cause)
+{
+  volatile uint32_t *timer_status = (volatile uint32_t *)TIMER_BASE_ADDR;
+  volatile uint32_t *sw_edge = (volatile uint32_t *)(SWITCH_BASE_ADDR + SWITCH_EDGECAPTURE_OFFSET);
+  
+  if ((*sw_edge & 0x1) == 0x1)
+  {
+    delay(10);
+    *sw_edge = *sw_edge & 0x3fe;
+  }
+  else if ((*timer_status & 0x1) == 0x1)
+  {
+    *timer_status = *timer_status & 0xfffe;
+  }
+}
+
 /* Below is the function that will be called when an interrupt is triggered. */
 /*
 void handle_interrupt(unsigned cause)

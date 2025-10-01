@@ -38,8 +38,8 @@ int countLED;
 int timeoutcount;
 int mytime;
 
+void handle_interrupt(unsigned cause);
 int VGA_function();
-
 void display_modifier();
 
 typedef struct Point{
