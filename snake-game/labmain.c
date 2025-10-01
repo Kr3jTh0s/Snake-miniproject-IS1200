@@ -13,6 +13,10 @@ char textstring[] = "text, more text, and even more text!";
 int run = 1;
 int timeoutcount = 0;
 
+volatile char *VGA = (volatile char *)VGA_SCREEN_BUF_BASE_ADDR;
+volatile uint32_t *VGA_CTRL = (volatile uint32_t *)VGA_PIXEL_BUF_BASE_ADDR;
+unsigned int y_ofs = 0;
+
 static inline int check_timeout()
 {
   volatile uint32_t *timer_status = (volatile uint32_t *)(TIMER_BASE_ADDR);
@@ -22,6 +26,25 @@ static inline int check_timeout()
     return 1;
   }
   return 0;
+}
+
+void handle_interrupt(unsigned cause)
+{
+  volatile uint32_t *timer_status = (volatile uint32_t *)TIMER_BASE_ADDR;
+  volatile uint32_t *sw_edge = (volatile uint32_t *)(SWITCH_BASE_ADDR + SWITCH_EDGECAPTURE_OFFSET);
+
+  if ((*sw_edge & 0x1) == 0x1)
+  {
+    delay(10);
+    *sw_edge = *sw_edge & 0x3fe;
+  }
+  else if ((*timer_status & 0x1) == 0x1)
+  {
+    *timer_status = *timer_status & 0xfffe;
+  }
+
+  VGA_CTRL[1] = (unsigned int)(VGA + y_ofs * 320); // back buffer addr
+  y_ofs = (y_ofs + 1) % 240;                       // wrap at 240 rows
 }
 
 /* Add your code here for initializing interrupts. */
@@ -44,25 +67,18 @@ void labinit(void)
 /* Your code goes into main as well as any needed functions. */
 int main()
 {
-  // Call labinit()
-  labinit();
+  labinit(); // initialize timer + interrupts
 
-  volatile char *VGA = (volatile char *)VGA_SCREEN_BUF_BASE_ADDR;
-  for (int i = 0; i < 320 * 480; i++)
-    VGA[i] = i / 320;
-  unsigned int y_ofs = 0;
-  volatile int *VGA_CTRL = (volatile int *)VGA_PIXEL_BUF_BASE_ADDR;
-  while (1)
+  for (int y = 0; y < 240; y++)
   {
-    *(VGA_CTRL + 1) = (unsigned int)(VGA + y_ofs * 320);
-    *(VGA_CTRL + 0) = 0;
-    y_ofs = (y_ofs + 1) % 240;
-    delay(100);
+    for (int x = 0; x < 320; x++)
+    {
+      VGA[y * 320 + x] = y; // vertical gradient
+    }
   }
 
-  // Enter a forever loop
-  // while (1)
-  // {
-  //   game();
-  // }
+  while (1)
+  {
+    asm volatile("wfi");
+  }
 }
