@@ -13,7 +13,7 @@ char textstring[] = "text, more text, and even more text!";
 int run = 1;
 int timeoutcount = 0;
 
-volatile char *_VGA= (volatile char *)VGA_SCREEN_BUF_BASE_ADDR;
+volatile char *_VGA = (volatile char *)VGA_SCREEN_BUF_BASE_ADDR;
 volatile uint32_t *_VGA_CTRL = (volatile uint32_t *)VGA_PIXEL_BUF_BASE_ADDR;
 unsigned int y_ofs = 0;
 
@@ -43,8 +43,22 @@ void handle_interrupt(unsigned cause)
     *timer_status = *timer_status & 0xfffe;
   }
 
-  _VGA_CTRL[1] = (unsigned int)(_VGA+ y_ofs * 320); // back buffer addr
-  y_ofs = (y_ofs + 1) % 240;                       // wrap at 240 rows
+  // --- update framebuffer ---
+  for (int y = 0; y < 240; y++)
+  {
+    for (int x = 0; x < 320; x++)
+    {
+      _VGA[y * 320 + x] = (y + y_ofs) & 0xFF; // moving vertical gradient
+    }
+  }
+
+  // tell VGA controller which buffer to display
+  _VGA_CTRL[1] = (unsigned int)_VGA;
+  _VGA_CTRL[0] = 1; // start swap
+  while (_VGA_CTRL[3] & 0x1)
+  {
+  }; // wait until swap done
+  y_ofs = (y_ofs + 1) % 240;
 }
 
 /* Add your code here for initializing interrupts. */
@@ -54,7 +68,7 @@ void labinit(void)
   volatile uint32_t *timer_periodh = (volatile uint32_t *)(TIMER_BASE_ADDR + TIMER_PERIODH_OFFSET);
   volatile uint32_t *timer_control = (volatile uint32_t *)(TIMER_BASE_ADDR + TIMER_CONTROL_OFFSET);
 
-  uint32_t period = 1000000;
+  uint32_t period = 3000000;
 
   *timer_periodl = period & 0xffff;
   *timer_periodh = (period >> 16) & 0xffff;
@@ -68,14 +82,6 @@ void labinit(void)
 int main()
 {
   labinit(); // initialize timer + interrupts
-
-  for (int y = 0; y < 480; y++)
-  {
-    for (int x = 0; x < 320; x++)
-    {
-      _VGA[y * 320 + x] = y; // vertical gradient
-    }
-  }
 
   while (1)
   {
