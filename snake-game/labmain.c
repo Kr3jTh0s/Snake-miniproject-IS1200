@@ -13,8 +13,8 @@ char textstring[] = "text, more text, and even more text!";
 int run = 1;
 int timeoutcount = 0;
 
-volatile char *VGA = (volatile char *)VGA_SCREEN_BUF_BASE_ADDR;
-volatile uint32_t *VGA_CTRL = (volatile uint32_t *)VGA_PIXEL_BUF_BASE_ADDR;
+volatile char *_VGA= (volatile char *)VGA_SCREEN_BUF_BASE_ADDR;
+volatile uint32_t *_VGA_CTRL = (volatile uint32_t *)VGA_PIXEL_BUF_BASE_ADDR;
 unsigned int y_ofs = 0;
 
 static inline int check_timeout()
@@ -43,7 +43,7 @@ void handle_interrupt(unsigned cause)
     *timer_status = *timer_status & 0xfffe;
   }
 
-  VGA_CTRL[1] = (unsigned int)(VGA + y_ofs * 320); // back buffer addr
+  _VGA_CTRL[1] = (unsigned int)(_VGA+ y_ofs * 320); // back buffer addr
   y_ofs = (y_ofs + 1) % 240;                       // wrap at 240 rows
 }
 
@@ -73,7 +73,7 @@ int main()
   {
     for (int x = 0; x < 320; x++)
     {
-      VGA[y * 320 + x] = y; // vertical gradient
+      _VGA[y * 320 + x] = y; // vertical gradient
     }
   }
 
