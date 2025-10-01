@@ -6,7 +6,6 @@
 
 #include <stdint.h>
 #include "gameobjects.h"
-#include <xkeycheck.h>
 
 int mytime = 0x5957;
 char textstring[] = "text, more text, and even more text!";
