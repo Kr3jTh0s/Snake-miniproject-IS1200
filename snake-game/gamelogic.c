@@ -41,9 +41,8 @@ set_time
   }
 }*/
 
-
-#include "gameobjects.h"
 #include <stdint.h>
+#include "gameobjects.h"
 
 
 //kan flytta på.

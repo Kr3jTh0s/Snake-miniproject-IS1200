@@ -6,7 +6,6 @@
 
 #include <stdint.h>
 #include "gameobjects.h"
-#include "gamelogic.c"
 
 int mytime = 0x5957;
 char textstring[] = "text, more text, and even more text!";
