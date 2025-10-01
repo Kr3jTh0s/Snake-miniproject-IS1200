@@ -34,7 +34,7 @@ extern void enable_interrupt(void);
 #define VGA_CTRL_BASE 0x04000100
 #define MAX_SNAKE_LENGTH 100
 
-int countLED;
+//int countLED;
 // int timeoutcount;
 // int mytime;
 
