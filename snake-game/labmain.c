@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include "gameobjects.h"
+#include <xkeycheck.h>
 
 int mytime = 0x5957;
 char textstring[] = "text, more text, and even more text!";
@@ -47,7 +48,18 @@ int main()
   // Call labinit()
   labinit();
 
-  VGA_function();
+  volatile char *VGA = (volatile char *)VGA_SCREEN_BUF_BASE_ADDR;
+  for (int i = 0; i < 320 * 480; i++)
+    VGA[i] = i / 320;
+  unsigned int y_ofs = 0;
+  volatile int *VGA_CTRL = (volatile int *)VGA_PIXEL_BUF_BASE_ADDR;
+  while (1)
+  {
+    *(VGA_CTRL + 1) = (unsigned int)(VGA + y_ofs * 320);
+    *(VGA_CTRL + 0) = 0;
+    y_ofs = (y_ofs + 1) % 240;
+    delay(100);
+  }
 
   // Enter a forever loop
   // while (1)
