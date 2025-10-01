@@ -54,7 +54,7 @@ void labinit(void)
   volatile uint32_t *timer_periodh = (volatile uint32_t *)(TIMER_BASE_ADDR + TIMER_PERIODH_OFFSET);
   volatile uint32_t *timer_control = (volatile uint32_t *)(TIMER_BASE_ADDR + TIMER_CONTROL_OFFSET);
 
-  uint32_t period = 3000000;
+  uint32_t period = 500000;
 
   *timer_periodl = period & 0xffff;
   *timer_periodh = (period >> 16) & 0xffff;
