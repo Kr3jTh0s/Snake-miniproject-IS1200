@@ -2,7 +2,7 @@
 #include "gameobjects.h"
 
 // Seven-segment display encoding for digits 0-9
-static const uint8_t segm7_display[10] = {
+const uint8_t segm7_display[10] = {
     0b01000000, // 0
     0b01111001, // 1
     0b00100100, // 2
