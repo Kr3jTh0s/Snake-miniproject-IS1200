@@ -15,19 +15,19 @@ static const uint8_t segm7_display[10] = {
     0b00011000  // 9
 };
 
-static inline void set_LEDs(int led_mask)
+inline void set_LEDs(int led_mask)
 {
   volatile int *led = (volatile int *)LED_BASE_ADDR;
   *led = led_mask;
 }
 
-static inline void set_displays(int display_number, int value)
+inline void set_displays(int display_number, int value)
 {
   volatile uint8_t *display = (volatile uint8_t *)(DISPLAY_BASE_ADDR + (display_number)*DISPLAY_OFFSET);
   *display = segm7_display[value];
 }
 
-static inline void update_displays(int my_time)
+inline void update_displays(int my_time)
 {
   for (int display_number = 0; display_number < MAX_DISPLAY_NUM; display_number++)
   {
@@ -37,7 +37,7 @@ static inline void update_displays(int my_time)
   }
 }
 
-static inline void count_LEDs(int my_time)
+inline void count_LEDs(int my_time)
 {
   update_displays(my_time);
 
