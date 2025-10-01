@@ -40,6 +40,8 @@ int mytime;
 
 int VGA_function();
 
+void display_modifier();
+
 typedef struct Point{
     int x;
     int y;
