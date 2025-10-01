@@ -48,9 +48,11 @@ int main()
   // Call labinit()
   labinit();
 
+  VGA();
+
   // Enter a forever loop
-  while (1)
-  {
-    game();
-  }
+  // while (1)
+  // {
+  //   game();
+  // }
 }

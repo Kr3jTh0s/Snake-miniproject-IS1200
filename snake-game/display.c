@@ -63,6 +63,6 @@ int VGA()
     *(VGA_CTRL + 0) = 0;
     y_ofs = (y_ofs + 1) % 240;
     for (int i = 0; i < 1000000; i++)
-      delay(100); // asm volatile("nop"); <- original code
+      delay(10); // asm volatile("nop"); <- original code
   }
 }

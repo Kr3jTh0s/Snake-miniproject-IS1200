@@ -31,6 +31,7 @@ int countLED;
 int timeoutcount;
 int mytime;
 
+int VGA();
 
 typedef struct Snake {
    int length;
