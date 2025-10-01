@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include "gameobjects.h"
 
+int countLED = 0x0;
+
 // Seven-segment display encoding for digits 0-9
 const uint8_t segm7_display[10] = {
     0b01000000, // 0

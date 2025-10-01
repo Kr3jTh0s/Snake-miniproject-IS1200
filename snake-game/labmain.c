@@ -10,7 +10,6 @@
 int mytime = 0x5957;
 char textstring[] = "text, more text, and even more text!";
 
-int countLED = 0x0;
 int run = 1;
 int timeoutcount = 0;
 
