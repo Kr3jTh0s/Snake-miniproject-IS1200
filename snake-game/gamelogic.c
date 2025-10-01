@@ -46,47 +46,48 @@ set_time
 #include <stdint.h>
 
 
+//kan flytta på.
 
+volatile uint8_t* VGA = (volatile uint8_t*) VGA_BASE;
+volatile uint32_t* VGA_CTRL = (volatile uint32_t*) VGA_CTRL_BASE;
 
-void game_init(){
-    /*  initialize game values such as snake length and such
-        snake.length = const
-        snake.direction = R
-        score = 0
-        ... */
+Snake snake;
+
+void show_framebuffer(){
+	VGA_CTRL[1] = (uint32_t) VGA;
+    VGA_CTRL[0] = 0;
 }
 
-void game(){
-    /*  main function. contains loop that runs the game
-        move_snake()
-        check_collision() */
+void draw_block(int grid_x, int grid_y, uint8_t color){
+	int position_x = grid_x * BLOCK_WIDTH;
+	int position_y = grid_y * BLOCK_HEIGHT;
+	for(int y = 0; y < 24; y++){
+		for(int x = 0; x < 32; x++){
+			VGA[(position_y + y) * 320 + (position_x + x)] = color;
+		}
+	}
+	
 }
 
-/* Below is the function that will be called when an interrupt is triggered. */
-void handle_interrupt(unsigned cause)
-{
-  volatile uint32_t *timer_status = (volatile uint32_t *)TIMER_BASE_ADDR;
-  volatile uint32_t *sw_edge = (volatile uint32_t *)(SWITCH_BASE_ADDR + SWITCH_EDGECAPTURE_OFFSET);
-  
-  if ((*sw_edge & 0x1) == 0x1)
-  {
-    delay(10);
-    *sw_edge = *sw_edge & 0x3fe;
-    tick(&mytime);
-    update_displays(mytime);
-  }
-  else if ((*timer_status & 0x1) == 0x1)
-  {
-    *timer_status = *timer_status & 0xfffe;
-
-    if (timeoutcount == 10)
-    {
-      tick(&mytime);
-      update_displays(mytime);
-      timeoutcount = 0;
+void create_field(int color){
+	for (int y = 0; y < 10; y++) {
+        for (int x = 0; x < 10; x++) {
+            draw_block(x, y, color);
+        }
     }
-    timeoutcount++;
-  }
+	show_framebuffer();
+}
+
+void create_snake(){
+	
+	snake.body[0].x = 5;
+	snake.body[0].y = 5;
+	snake.length = 1;
+	snake.direction = 'R';
+	
+	draw_block(snake.body[0].x, snake.body[0].y, 0x1C);	
+	
+	show_framebuffer();
 }
 
 void move_snake(){
@@ -129,6 +130,53 @@ void game_over(){
     /*  pause snake movement, make the score LEDs flicker and
         display "game over" screen */
 }
+
+void game_init(){
+    /*  initialize game values such as snake length and such
+        snake.length = const
+        snake.direction = R
+        score = 0
+        ... */
+}
+
+void game(){
+    /*  main function. contains loop that runs the game
+        move_snake()
+        check_collision() */
+		
+		//att testa
+		create_field(0x00);//svart bakgrund
+		create_snake();
+}
+
+/* Below is the function that will be called when an interrupt is triggered. */
+/*
+void handle_interrupt(unsigned cause)
+{
+  volatile uint32_t *timer_status = (volatile uint32_t *)TIMER_BASE_ADDR;
+  volatile uint32_t *sw_edge = (volatile uint32_t *)(SWITCH_BASE_ADDR + SWITCH_EDGECAPTURE_OFFSET);
+  
+  if ((*sw_edge & 0x1) == 0x1)
+  {
+    delay(10);
+    *sw_edge = *sw_edge & 0x3fe;
+    tick(&mytime);
+    update_displays(mytime);
+  }
+  else if ((*timer_status & 0x1) == 0x1)
+  {
+    *timer_status = *timer_status & 0xfffe;
+
+    if (timeoutcount == 10)
+    {
+      tick(&mytime);
+      update_displays(mytime);
+      timeoutcount = 0;
+    }
+    timeoutcount++;
+  }
+}
+
 
 static inline int get_sw()
 {
@@ -203,4 +251,4 @@ static inline void change_time(int sw, int *time)
   {
     *time = (*time & 0x00ffff) | (to_hex_time(right_most_sw) << 16);
   }
-}
+}*/

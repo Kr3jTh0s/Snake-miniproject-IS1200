@@ -26,6 +26,13 @@ extern void enable_interrupt(void);
 #define TIMER_CONTROL_OFFSET 0x4
 #define VGA_PIXEL_BUF_BASE_ADDR 0x04000100
 #define VGA_SCREEN_BUF_BASE_ADDR 0x08000000
+#define VGA_WIDTH 320
+#define VGA_HEIGHT 240
+#define BLOCK_WIDTH 32
+#define BLOCK_HEIGHT 24
+#define VGA_BASE 0x08000000
+#define VGA_CTRL_BASE 0x04000100
+#define MAX_SNAKE_LENGTH 100
 
 int countLED;
 int timeoutcount;
@@ -33,7 +40,13 @@ int mytime;
 
 int VGA();
 
+typedef struct Point{
+    int x;
+    int y;
+} Point;
+
 typedef struct Snake {
    int length;
    char direction;
+   Point body[MAX_SNAKE_LENGTH];
 } Snake;
