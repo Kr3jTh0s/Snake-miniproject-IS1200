@@ -6,14 +6,19 @@
 
 #include <stdint.h>
 #include "gameobjects.h"
-#include "gamelogic.c"
+
+void game();
+void game_init();
 
 int mytime = 0x5957;
 char textstring[] = "text, more text, and even more text!";
 
-int countLED = 0x0;
 int run = 1;
 int timeoutcount = 0;
+
+volatile char *_VGA = (volatile char *)VGA_SCREEN_BUF_BASE_ADDR;
+volatile uint32_t *_VGA_CTRL = (volatile uint32_t *)VGA_PIXEL_BUF_BASE_ADDR;
+unsigned int y_ofs = 0;
 
 static inline int check_timeout()
 {
@@ -26,6 +31,49 @@ static inline int check_timeout()
   return 0;
 }
 
+void handle_interrupt(unsigned cause)
+{
+  volatile uint32_t *timer_status = (volatile uint32_t *)TIMER_BASE_ADDR;
+  volatile uint32_t *sw_edge = (volatile uint32_t *)(SWITCH_BASE_ADDR + SWITCH_EDGECAPTURE_OFFSET);
+
+  if ((*sw_edge & 0x1) == 0x1)
+  {
+    delay(10);
+    *sw_edge = *sw_edge & 0x3fe;
+  }
+  else if ((*timer_status & 0x1) == 0x1)
+  {
+    *timer_status = *timer_status & 0xfffe;
+  }
+/*
+  // --- update framebuffer ---
+  for (int y = 0; y < 240; y++)
+  {
+    for (int x = 0; x < 320; x++)
+    {
+      _VGA[y * 320 + x] = (y + y_ofs) & 0xFF; // moving vertical gradient
+    }
+  }
+
+  // tell VGA controller which buffer to display
+  _VGA_CTRL[1] = (unsigned int)_VGA;
+  _VGA_CTRL[0] = 1; // start swap
+  while (_VGA_CTRL[3] & 0x1)
+  {
+  }; // wait until swap done
+  y_ofs = (y_ofs + 1) % 240;
+  _VGA_CTRL[1] = (unsigned int)_VGA;
+  _VGA_CTRL[0] = 1; // start swap*/
+  
+  static int initialized = 0;
+  if (!initialized) {
+    game_init();
+    initialized = 1;
+  }
+  game();
+  
+}
+
 /* Add your code here for initializing interrupts. */
 void labinit(void)
 {
@@ -33,7 +81,7 @@ void labinit(void)
   volatile uint32_t *timer_periodh = (volatile uint32_t *)(TIMER_BASE_ADDR + TIMER_PERIODH_OFFSET);
   volatile uint32_t *timer_control = (volatile uint32_t *)(TIMER_BASE_ADDR + TIMER_CONTROL_OFFSET);
 
-  uint32_t period = 3000000;
+  uint32_t period = 30000000;
 
   *timer_periodl = period & 0xffff;
   *timer_periodh = (period >> 16) & 0xffff;
@@ -46,12 +94,10 @@ void labinit(void)
 /* Your code goes into main as well as any needed functions. */
 int main()
 {
-  // Call labinit()
-  labinit();
-
-  // Enter a forever loop
+  labinit(); // initialize timer + interrupts
+	
   while (1)
   {
-    game();
+    asm volatile("wfi");
   }
 }

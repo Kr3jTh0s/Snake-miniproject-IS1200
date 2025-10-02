@@ -1,8 +1,10 @@
 #include <stdint.h>
 #include "gameobjects.h"
 
+int countLED = 0x0;
+
 // Seven-segment display encoding for digits 0-9
-static const uint8_t segm7_display[10] = {
+const uint8_t segm7_display[10] = {
     0b01000000, // 0
     0b01111001, // 1
     0b00100100, // 2
@@ -15,19 +17,19 @@ static const uint8_t segm7_display[10] = {
     0b00011000  // 9
 };
 
-static inline void set_LEDs(int led_mask)
+inline void set_LEDs(int led_mask)
 {
   volatile int *led = (volatile int *)LED_BASE_ADDR;
   *led = led_mask;
 }
 
-static inline void set_displays(int display_number, int value)
+inline void set_displays(int display_number, int value)
 {
   volatile uint8_t *display = (volatile uint8_t *)(DISPLAY_BASE_ADDR + (display_number)*DISPLAY_OFFSET);
   *display = segm7_display[value];
 }
 
-static inline void update_displays(int my_time)
+inline void update_displays(int my_time)
 {
   for (int display_number = 0; display_number < MAX_DISPLAY_NUM; display_number++)
   {
@@ -37,7 +39,7 @@ static inline void update_displays(int my_time)
   }
 }
 
-static inline void count_LEDs(int my_time)
+inline void count_LEDs(int my_time)
 {
   update_displays(my_time);
 
@@ -50,7 +52,7 @@ static inline void count_LEDs(int my_time)
 }
 
 
-int VGA()
+int VGA_function() // placeholder namn
 {
   volatile char *VGA = (volatile char *)VGA_SCREEN_BUF_BASE_ADDR;
   for (int i = 0; i < 320 * 480; i++)
@@ -63,6 +65,6 @@ int VGA()
     *(VGA_CTRL + 0) = 0;
     y_ofs = (y_ofs + 1) % 240;
     for (int i = 0; i < 1000000; i++)
-      delay(100); // asm volatile("nop"); <- original code
+      delay(10); // asm volatile("nop"); <- original code
   }
 }

@@ -34,9 +34,13 @@ extern void enable_interrupt(void);
 #define VGA_CTRL_BASE 0x04000100
 #define MAX_SNAKE_LENGTH 100
 
-int countLED;
-int timeoutcount;
-int mytime;
+//int countLED;
+// int timeoutcount;
+// int mytime;
+
+void handle_interrupt(unsigned cause);
+int VGA_function();
+void display_modifier();
 
 typedef struct Point{
     int x;

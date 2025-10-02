@@ -41,15 +41,14 @@ set_time
   }
 }*/
 
-
-#include "gameobjects.h"
 #include <stdint.h>
+#include "gameobjects.h"
 
 
 //kan flytta på.
 
-volatile uint8_t* VGA = (volatile uint8_t*) VGA_BASE;
-volatile uint32_t* VGA_CTRL = (volatile uint32_t*) VGA_CTRL_BASE;
+volatile uint8_t* VGA = (volatile uint8_t*) VGA_SCREEN_BUF_BASE_ADDR;
+volatile uint32_t* VGA_CTRL = (volatile uint32_t*) VGA_PIXEL_BUF_BASE_ADDR;
 
 Snake snake;
 
@@ -137,6 +136,8 @@ void game_init(){
         snake.direction = R
         score = 0
         ... */
+		create_field(0x00);//svart bakgrund
+		create_snake();
 }
 
 void game(){
@@ -145,8 +146,6 @@ void game(){
         check_collision() */
 		
 		//att testa
-		create_field(0x00);//svart bakgrund
-		create_snake();
 }
 
 /* Below is the function that will be called when an interrupt is triggered. */
