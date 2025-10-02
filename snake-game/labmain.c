@@ -45,6 +45,7 @@ void handle_interrupt(unsigned cause)
   {
     *timer_status = *timer_status & 0xfffe;
   }
+
 /*
   // --- update framebuffer ---
   for (int y = 0; y < 240; y++)
@@ -62,6 +63,7 @@ void handle_interrupt(unsigned cause)
   {
   }; // wait until swap done
   y_ofs = (y_ofs + 1) % 240;
+
   _VGA_CTRL[1] = (unsigned int)_VGA;
   _VGA_CTRL[0] = 1; // start swap*/
   
@@ -95,7 +97,7 @@ void labinit(void)
 int main()
 {
   labinit(); // initialize timer + interrupts
-	
+
   while (1)
   {
     asm volatile("wfi");
