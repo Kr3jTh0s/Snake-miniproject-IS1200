@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "gameobjects.h"
 
+/*
 int countLED = 0x0;
 
 // Seven-segment display encoding for digits 0-9
@@ -67,4 +68,4 @@ int VGA_function() // placeholder namn
     for (int i = 0; i < 1000000; i++)
       delay(10); // asm volatile("nop"); <- original code
   }
-}
+}*/

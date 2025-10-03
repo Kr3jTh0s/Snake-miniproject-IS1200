@@ -129,3 +129,4 @@ loop:	j loop
 enable_interrupt:
 	csrs mstatus, 3
 	csrs mie, 16
+	csrs mie, 17

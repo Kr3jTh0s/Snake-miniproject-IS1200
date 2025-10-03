@@ -33,6 +33,11 @@ extern void enable_interrupt(void);
 #define VGA_BASE 0x08000000
 #define VGA_CTRL_BASE 0x04000100
 #define MAX_SNAKE_LENGTH 100
+#define BLOCK_SIZE 20
+#define GRID_OFFSET_X 60
+#define GRID_OFFSET_Y 20
+#define GRID_LIMIT 10
+#define GAME_SWITCH 0x1
 
 //int countLED;
 // int timeoutcount;
@@ -41,6 +46,7 @@ extern void enable_interrupt(void);
 void handle_interrupt(unsigned cause);
 int VGA_function();
 void display_modifier();
+
 
 typedef struct Point{
     int x;

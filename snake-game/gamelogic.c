@@ -46,11 +46,25 @@ set_time
 
 
 //kan flytta på.
-
+int run = 1;
 volatile uint8_t* VGA = (volatile uint8_t*) VGA_SCREEN_BUF_BASE_ADDR;
 volatile uint32_t* VGA_CTRL = (volatile uint32_t*) VGA_PIXEL_BUF_BASE_ADDR;
 
 Snake snake;
+
+static inline int get_sw()
+{
+  volatile uint32_t *sw = (volatile uint32_t *)SWITCH_BASE_ADDR;
+  return (*sw) & GAME_SWITCH;
+}
+
+static inline int get_btn()
+{
+  volatile uint8_t *btn = (volatile uint8_t *)BTN_BASE_ADDR;
+  return (*btn) & BTN_MASK;
+}
+
+
 
 void show_framebuffer(){
 	VGA_CTRL[1] = (uint32_t) VGA;
@@ -58,17 +72,25 @@ void show_framebuffer(){
 }
 
 void draw_block(int grid_x, int grid_y, uint8_t color){
-	int position_x = grid_x * BLOCK_WIDTH;
-	int position_y = grid_y * BLOCK_HEIGHT;
-	for(int y = 0; y < 24; y++){
-		for(int x = 0; x < 32; x++){
-			VGA[(position_y + y) * 320 + (position_x + x)] = color;
-		}
-	}
 	
+    int position_x = GRID_OFFSET_X + grid_x * BLOCK_SIZE;
+    int position_y = GRID_OFFSET_Y + grid_y * BLOCK_SIZE;
+
+    for (int y = 0; y < BLOCK_SIZE; y++) {
+        for (int x = 0; x < BLOCK_SIZE; x++) {
+            VGA[(position_y + y) * 320 + (position_x + x)] = color;
+        }
+    }
 }
 
-void create_field(int color){
+
+void create_background(uint8_t color){
+	for (int i = 0; i < 320 * 240; i++) {
+        VGA[i] = color;
+    }
+	show_framebuffer();
+}
+void create_field(uint8_t color){
 	for (int y = 0; y < 10; y++) {
         for (int x = 0; x < 10; x++) {
             draw_block(x, y, color);
@@ -79,8 +101,8 @@ void create_field(int color){
 
 void create_snake(){
 	
-	snake.body[0].x = 5;
-	snake.body[0].y = 5;
+	snake.body[0].x = 0;
+	snake.body[0].y = 0;
 	snake.length = 1;
 	snake.direction = 'R';
 	
@@ -92,13 +114,72 @@ void create_snake(){
 void move_snake(){
     /*  makes the snake continuously move in a specified direction
         (U, D, L, R) (Up, Down, Left, Right) */
+	switch(snake.direction)
+	{
+		case 'R':
+			draw_block(snake.body[0].x, snake.body[0].y, 0x00);
+			snake.body[0].x += 1;
+			draw_block(snake.body[0].x, snake.body[0].y, 0x1C);
+			break;
+		case 'L':
+			draw_block(snake.body[0].x, snake.body[0].y, 0x00);
+			snake.body[0].x -= 1;
+			draw_block(snake.body[0].x, snake.body[0].y, 0x1C);
+			break;
+		case 'U':
+			draw_block(snake.body[0].x, snake.body[0].y, 0x00);
+			snake.body[0].y -= 1;
+			draw_block(snake.body[0].x, snake.body[0].y, 0x1C);
+			break;
+		case 'D':
+			draw_block(snake.body[0].x, snake.body[0].y, 0x00);
+			snake.body[0].y += 1;
+			draw_block(snake.body[0].x, snake.body[0].y, 0x1C);
+			break;
+	}
 }
 
-void change_direction(){
+void change_direction(char turn){
     /*  change the direction that the snake is continuously moving
         by a 90 degree turn of its current direction
         (U, D, L, R) (Up, Down, Left, Right) 
         snake.direction = 'L' */
+	if(turn == 'R')
+	{
+		switch(snake.direction)
+		{
+			case 'R':
+				snake.direction = 'D';
+				break;
+			case 'L':
+				snake.direction = 'U';
+				break;
+			case 'U':
+				snake.direction = 'R';
+				break;
+			case 'D':
+				snake.direction = 'L';
+				break;
+		}
+	}
+	else if(turn == 'L')
+	{
+		switch(snake.direction)
+		{
+			case 'R':
+				snake.direction = 'U';
+				break;
+			case 'L':
+				snake.direction = 'D';
+				break;
+			case 'U':
+				snake.direction = 'L';
+				break;
+			case 'D':
+				snake.direction = 'R';
+				break;
+		}
+	}
 }
 
 void check_collision(){
@@ -113,6 +194,11 @@ void check_collision(){
         increase snake body length. 
         add_score()
         increase_length() */
+	if((snake.body[0].x >= GRID_LIMIT || snake.body[0].x < 0) ||
+		(snake.body[0].y >= GRID_LIMIT || snake.body[0].y < 0)){
+		run = 0;
+	}
+
 }
 
 void add_score(){
@@ -136,6 +222,7 @@ void game_init(){
         snake.direction = R
         score = 0
         ... */
+		create_background(0xE0);
 		create_field(0x00);//svart bakgrund
 		create_snake();
 }
@@ -146,6 +233,9 @@ void game(){
         check_collision() */
 		
 		//att testa
+		move_snake();
+		check_collision();
+		show_framebuffer();
 }
 
 /* Below is the function that will be called when an interrupt is triggered. */
