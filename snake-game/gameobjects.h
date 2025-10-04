@@ -53,8 +53,13 @@ typedef struct Point{
     int y;
 } Point;
 
-typedef struct Snake {
+typedef struct Snake{
    int length;
    char direction;
    Point body[MAX_SNAKE_LENGTH];
 } Snake;
+
+typedef struct Apple{
+	int x;
+	int y;
+} Apple;

@@ -44,13 +44,14 @@ set_time
 #include <stdint.h>
 #include "gameobjects.h"
 
-
 //kan flytta på.
 int run = 1;
+int apple_exists = 0;
 volatile uint8_t* VGA = (volatile uint8_t*) VGA_SCREEN_BUF_BASE_ADDR;
 volatile uint32_t* VGA_CTRL = (volatile uint32_t*) VGA_PIXEL_BUF_BASE_ADDR;
 
 Snake snake;
+Apple apple;
 
 static inline int get_sw()
 {
@@ -99,16 +100,21 @@ void create_field(uint8_t color){
 	show_framebuffer();
 }
 
-void create_snake(){
+void create_snake(int color){
 	
 	snake.body[0].x = 0;
 	snake.body[0].y = 0;
 	snake.length = 1;
 	snake.direction = 'R';
 	
-	draw_block(snake.body[0].x, snake.body[0].y, 0x1C);	
+	draw_block(snake.body[0].x, snake.body[0].y, color);	
 	
 	show_framebuffer();
+}
+
+void lengthen_snake()
+{
+	
 }
 
 void move_snake(){
@@ -182,7 +188,44 @@ void change_direction(char turn){
 	}
 }
 
-void check_collision(){
+int is_block_snake(int x, int y)
+{
+	for(int i = 0; i < snake.length; i++)
+	{
+		if(snake.body[i].x == x && snake.body[i].y == y) return 1;
+	}
+	return 0;
+}
+
+void spawn_apple(Apple* apple, int color)
+{
+	if(!apple_exists)
+	{
+		for(int y = 0; y < 10; y++)
+		{
+			for(int x = 0; x < 10; x++)
+			{
+				if(!is_block_snake(x, y))
+				{
+					apple->x = x;
+					apple->y = y;
+					draw_block(apple->x, apple->y, color);
+					return;
+				}
+			}
+		}
+	}
+}
+
+void create_apple(Apple* apple, int color)
+{
+	apple->x = 5;
+	apple->y = 5;
+	draw_block(apple->x, apple->y, color);
+	apple_exists = 1;
+}
+
+void check_collision(Apple* apple){
     /*  check if any pixel of the snake's head is overlapping with 
         itself, the out of bounds border or with an apple.
         
@@ -197,6 +240,11 @@ void check_collision(){
 	if((snake.body[0].x >= GRID_LIMIT || snake.body[0].x < 0) ||
 		(snake.body[0].y >= GRID_LIMIT || snake.body[0].y < 0)){
 		run = 0;
+	}
+	if(snake.body[0].x == apple->x && snake.body[0].y == apple->y)
+	{	
+		snake.length += 1;
+		apple_exists = 0;
 	}
 
 }
@@ -224,16 +272,17 @@ void game_init(){
         ... */
 		create_background(0xE0);
 		create_field(0x00);//svart bakgrund
-		create_snake();
+		create_snake(0x1C);
+		create_apple(0xEC)
 }
 
 void game(){
     /*  main function. contains loop that runs the game
         move_snake()
         check_collision() */
-		
 		//att testa
 		move_snake();
+		spawn_apple(&apple, 0xEC);
 		check_collision();
 		show_framebuffer();
 }
