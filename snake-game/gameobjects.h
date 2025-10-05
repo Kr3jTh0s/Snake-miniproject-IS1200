@@ -1,3 +1,7 @@
+/*
+Header file for snake game, gameobjects.h.
+*/
+
 /* Below functions are external and found in other files. */
 extern void print(const char *);
 extern void print_dec(unsigned int);

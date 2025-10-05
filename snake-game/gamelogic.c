@@ -41,6 +41,10 @@ set_time
   }
 }*/
 
+/*
+Game logic for snake game, gamelogic.c.
+*/
+
 #include <stdint.h>
 #include "gameobjects.h"
 
@@ -52,6 +56,7 @@ volatile uint32_t* VGA_CTRL = (volatile uint32_t*) VGA_PIXEL_BUF_BASE_ADDR;
 
 Snake snake;
 Apple apple;
+int snake_tail[2];
 
 static inline int get_sw()
 {
@@ -102,8 +107,8 @@ void create_field(uint8_t color){
 
 void create_snake(int color){
 	
-	snake.body[0].x = 0;
-	snake.body[0].y = 0;
+	snake.body[0].x = 3;
+	snake.body[0].y = 3;
 	snake.length = 1;
 	snake.direction = 'R';
 	
@@ -112,36 +117,50 @@ void create_snake(int color){
 	show_framebuffer();
 }
 
-void lengthen_snake()
+void lengthen_snake(char direction)
 {
+	/*  increase length of snake body by a constant amount
+        snake.length += 1 */
 	
+	//
+	snake.body[snake.length].x = snake_tail[0];
+	snake.body[snake.length].y = snake_tail[1];
+	snake.length += 1;
+	draw_block(snake_tail[0], snake_tail[1], 0x1C);
 }
 
 void move_snake(){
     /*  makes the snake continuously move in a specified direction
         (U, D, L, R) (Up, Down, Left, Right) */
+	
+	
+	
+	snake_tail[0] = snake.body[snake.length-1].x;
+	snake_tail[1] = snake.body[snake.length-1].y;
+	draw_block(snake_tail[0], snake_tail[1], 0x00);
+	
+	for(int i = snake.length - 1; i>0; i--)
+	{
+		snake.body[i] = snake.body[i-1];
+	}
 	switch(snake.direction)
 	{
 		case 'R':
-			draw_block(snake.body[0].x, snake.body[0].y, 0x00);
 			snake.body[0].x += 1;
-			draw_block(snake.body[0].x, snake.body[0].y, 0x1C);
 			break;
 		case 'L':
-			draw_block(snake.body[0].x, snake.body[0].y, 0x00);
 			snake.body[0].x -= 1;
-			draw_block(snake.body[0].x, snake.body[0].y, 0x1C);
 			break;
 		case 'U':
-			draw_block(snake.body[0].x, snake.body[0].y, 0x00);
 			snake.body[0].y -= 1;
-			draw_block(snake.body[0].x, snake.body[0].y, 0x1C);
 			break;
 		case 'D':
-			draw_block(snake.body[0].x, snake.body[0].y, 0x00);
 			snake.body[0].y += 1;
-			draw_block(snake.body[0].x, snake.body[0].y, 0x1C);
 			break;
+	}
+	for(int i = 0; i < snake.length; i++)
+	{
+		draw_block(snake.body[i].x, snake.body[i].y, 0x1C);
 	}
 }
 
@@ -243,8 +262,9 @@ void check_collision(Apple* apple){
 	}
 	if(snake.body[0].x == apple->x && snake.body[0].y == apple->y)
 	{	
-		snake.length += 1;
 		apple_exists = 0;
+		spawn_apple(apple, 0xEC);
+		lengthen_snake(snake.direction);		
 	}
 
 }
@@ -252,11 +272,6 @@ void check_collision(Apple* apple){
 void add_score(){
     /*  adds score of eaten apple and update 7 segment display to
         display score */ 
-}
-
-void increase_length(){
-    /*  increase length of snake body by a constant amount
-        snake.length += const */
 }
 
 void game_over(){
@@ -272,8 +287,8 @@ void game_init(){
         ... */
 		create_background(0xE0);
 		create_field(0x00);//svart bakgrund
+		create_apple(&apple, 0xEC);
 		create_snake(0x1C);
-		create_apple(0xEC)
 }
 
 void game(){
@@ -282,8 +297,7 @@ void game(){
         check_collision() */
 		//att testa
 		move_snake();
-		spawn_apple(&apple, 0xEC);
-		check_collision();
+		check_collision(&apple);
 		show_framebuffer();
 }
 

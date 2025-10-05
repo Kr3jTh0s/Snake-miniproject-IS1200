@@ -1,8 +1,6 @@
-/* main.c
-
-   This file written 2024 by Artur Podobas and Pedro Antunes
-
-   For copyright and licensing, see file COPYING */
+/*
+Main file for snake game, labmain.c.
+*/
 
 #include <stdint.h>
 #include "gameobjects.h"
@@ -38,26 +36,26 @@ static inline int check_timeout()
 void handle_interrupt(unsigned cause)
 {
   volatile uint32_t *timer_status = (volatile uint32_t *)TIMER_BASE_ADDR;
-  volatile uint32_t *sw_edge = (volatile uint32_t *)(SWITCH_BASE_ADDR + SWITCH_EDGECAPTURE_OFFSET);
+  //volatile uint32_t *sw_edge = (volatile uint32_t *)(SWITCH_BASE_ADDR + SWITCH_EDGECAPTURE_OFFSET);
   volatile uint32_t* sw_data = (volatile uint32_t*)SWITCH_BASE_ADDR;
   volatile uint32_t* btn_edge = (volatile uint32_t*)(BTN_BASE_ADDR + 0xC);
 
-  if ((*sw_edge & 0x1) == 0x1)
+  /*if ((*sw_edge & 0x1) == 0x1)
   {
     delay(10);
     *sw_edge = *sw_edge & 0x3fe;
-  }
+  }*/
   
-  else if ((*timer_status & 0x1) == 0x1)
+  if ((*timer_status & 0x1) == 0x1)
   {
     *timer_status = *timer_status & 0xfffe;
   }
   
   if ((*btn_edge & 0x1) == 0x1)
     {
-		delay(200);
-		volatile uint32_t* led = (volatile uint32_t*)LED_BASE_ADDR;
-		*led ^= 0x1;  // Toggle LED 0
+		delay(400);
+		/*volatile uint32_t* led = (volatile uint32_t*)LED_BASE_ADDR;
+		*led ^= 0x1;  // Toggle LED 0*/
         uint32_t sw_val = *sw_data;
 
         if ((sw_val & 0x1) == 0x1)
@@ -127,7 +125,7 @@ int main()
 	delay(3000);
     while (run) {
         game();
-		delay(2500);
+		delay(2000);
     }
     //game_over();
     /*while(1) {
