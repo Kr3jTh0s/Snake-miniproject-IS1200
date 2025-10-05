@@ -48,7 +48,6 @@ Game logic for snake game, gamelogic.c.
 #include <stdint.h>
 #include "gameobjects.h"
 
-//kan flytta på.
 int run = 1;
 int apple_exists = 0;
 volatile uint8_t* VGA = (volatile uint8_t*) VGA_SCREEN_BUF_BASE_ADDR;
@@ -57,6 +56,7 @@ volatile uint32_t* VGA_CTRL = (volatile uint32_t*) VGA_PIXEL_BUF_BASE_ADDR;
 Snake snake;
 Apple apple;
 int snake_tail[2];
+unsigned int random_number_seed = 7269947;
 
 static inline int get_sw()
 {
@@ -70,7 +70,16 @@ static inline int get_btn()
   return (*btn) & BTN_MASK;
 }
 
-
+unsigned int pseudo_random_number_generator()
+{
+	unsigned int offset = 81440;
+	unsigned int base = 5097217;
+	unsigned int bit_mask = 0x0fffff;
+	
+	random_number_seed = (base * random_number_seed + offset) & bit_mask;
+	
+	return random_number_seed;
+}
 
 void show_framebuffer(){
 	VGA_CTRL[1] = (uint32_t) VGA;
@@ -96,7 +105,7 @@ void create_background(uint8_t color){
     }
 	show_framebuffer();
 }
-void create_field(uint8_t color){
+void create_playing_field(uint8_t color){
 	for (int y = 0; y < 10; y++) {
         for (int x = 0; x < 10; x++) {
             draw_block(x, y, color);
@@ -127,6 +136,7 @@ void lengthen_snake(char direction)
 	snake.body[snake.length].y = snake_tail[1];
 	snake.length += 1;
 	draw_block(snake_tail[0], snake_tail[1], 0x1C);
+	//if(snake.length == MAX_SNAKE_LENGTH) victory();
 }
 
 void move_snake(){
@@ -207,6 +217,28 @@ void change_direction(char turn){
 	}
 }
 
+int is_head_on_body()
+{
+	for(int i = 1; i < snake.length; i++)
+	{
+		if(snake.body[0].x == snake.body[i].x && snake.body[0].y == snake.body[i].y) return 1;
+	}
+	return 0;
+}
+
+int is_head_outside_map()
+{
+	if((snake.body[0].x >= GRID_LIMIT || snake.body[0].x < 0) ||
+		(snake.body[0].y >= GRID_LIMIT || snake.body[0].y < 0)) return 1;
+	return 0;
+}
+
+int is_head_on_apple(Apple* apple)
+{
+	if(snake.body[0].x == apple->x && snake.body[0].y == apple->y) return 1;
+	return 0;
+}
+
 int is_block_snake(int x, int y)
 {
 	for(int i = 0; i < snake.length; i++)
@@ -217,18 +249,23 @@ int is_block_snake(int x, int y)
 }
 
 void spawn_apple(Apple* apple, int color)
-{
+{	
+
+	int random_mod_ten = pseudo_random_number_generator()%10;
 	if(!apple_exists)
 	{
-		for(int y = 0; y < 10; y++)
+		for(int i = 0; i < 10; i++)
 		{
-			for(int x = 0; x < 10; x++)
+			int y = (random_mod_ten+i)%10;
+			for(int j = 0; j < 10; j++)
 			{
+				int x = (random_mod_ten+j)%10;
 				if(!is_block_snake(x, y))
 				{
 					apple->x = x;
 					apple->y = y;
 					draw_block(apple->x, apple->y, color);
+					apple_exists = 1;
 					return;
 				}
 			}
@@ -236,7 +273,7 @@ void spawn_apple(Apple* apple, int color)
 	}
 }
 
-void create_apple(Apple* apple, int color)
+void create_first_apple(Apple* apple, int color)
 {
 	apple->x = 5;
 	apple->y = 5;
@@ -256,15 +293,27 @@ void check_collision(Apple* apple){
         increase snake body length. 
         add_score()
         increase_length() */
-	if((snake.body[0].x >= GRID_LIMIT || snake.body[0].x < 0) ||
-		(snake.body[0].y >= GRID_LIMIT || snake.body[0].y < 0)){
+		
+	if(is_head_outside_map())
+	{
 		run = 0;
+		return;
 	}
-	if(snake.body[0].x == apple->x && snake.body[0].y == apple->y)
+	
+	if(is_head_on_body())
+	{
+		run = 0;
+		return;
+	}
+	
+	if(is_head_on_apple(apple))
 	{	
 		apple_exists = 0;
-		spawn_apple(apple, 0xEC);
-		lengthen_snake(snake.direction);		
+		lengthen_snake(snake.direction);
+		while(!apple_exists)
+		{
+			spawn_apple(apple, 0xEC);
+		}		
 	}
 
 }
@@ -277,6 +326,15 @@ void add_score(){
 void game_over(){
     /*  pause snake movement, make the score LEDs flicker and
         display "game over" screen */
+		
+	run = 0;
+	create_background(0x00);
+}
+
+void victory()
+{
+	run = 0;
+	create_background(0x02);
 }
 
 void game_init(){
@@ -285,20 +343,21 @@ void game_init(){
         snake.direction = R
         score = 0
         ... */
-		create_background(0xE0);
-		create_field(0x00);//svart bakgrund
-		create_apple(&apple, 0xEC);
-		create_snake(0x1C);
+		
+	create_background(0xE0);
+	create_playing_field(0x00);//svart bakgrund
+	create_first_apple(&apple, 0xEC);
+	create_snake(0x1C);
 }
 
 void game(){
     /*  main function. contains loop that runs the game
         move_snake()
         check_collision() */
-		//att testa
-		move_snake();
-		check_collision(&apple);
-		show_framebuffer();
+		
+	move_snake();
+	check_collision(&apple);
+	show_framebuffer();
 }
 
 /* Below is the function that will be called when an interrupt is triggered. */
