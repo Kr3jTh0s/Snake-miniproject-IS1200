@@ -42,10 +42,8 @@ extern void enable_interrupt(void);
 #define GRID_OFFSET_Y 20
 #define GRID_LIMIT 10
 #define GAME_SWITCH 0x1
-
-//int countLED;
-// int timeoutcount;
-// int mytime;
+#define GAME_START_DELAY 3000
+#define GAME_RUN_DELAY 2000
 
 void handle_interrupt(unsigned cause);
 int VGA_function();
@@ -67,3 +65,9 @@ typedef struct Apple{
 	int x;
 	int y;
 } Apple;
+
+void game(void);
+void game_init(void);
+void draw_block(int, int, uint8_t);
+void change_direction(char);
+int get_btn(void);
