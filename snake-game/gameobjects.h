@@ -44,6 +44,9 @@ extern void enable_interrupt(void);
 #define GAME_SWITCH 0x1
 #define GAME_START_DELAY 3000
 #define GAME_RUN_DELAY 2000
+#define LETTER_BLOCK_SIZE 10
+#define TEXT_OFFSET_X 25
+#define TEXT_OFFSET_y 30
 
 void handle_interrupt(unsigned cause);
 int VGA_function();

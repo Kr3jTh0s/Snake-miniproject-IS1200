@@ -68,6 +68,128 @@ void draw_block(int grid_x, int grid_y, uint8_t color){
     }
 }
 
+void draw_letter_block(int grid_x, int grid_y, uint8_t color)
+{	
+	int position_x = TEXT_OFFSET_X + grid_x * LETTER_BLOCK_SIZE;
+    int position_y = TEXT_OFFSET_y + grid_y * LETTER_BLOCK_SIZE;
+	for (int y = 0; y < 10; y++) {
+        for (int x = 0; x < 10; x++) {
+            VGA[(position_y + y) * 320 + (position_x + x)] = color;
+        }
+    }
+}
+
+void draw_G()
+{
+	for(int i = 3; i < 7; i++)
+	{
+		draw_letter_block(i, 3, 0xE0);
+		draw_letter_block(i, 7, 0xE0);
+	}
+	for(int i = 4; i < 7; i ++)
+	{
+		draw_letter_block(2, i, 0xE0);
+		draw_letter_block(i, 5, 0xE0);
+	}
+	draw_letter_block(6, 6, 0xE0);
+}
+
+void draw_A()
+{
+	for(int i = 9; i < 12; i++)
+	{
+		draw_letter_block(i, 3, 0xE0);
+	}
+	for(int i = 8; i < 12; i++)
+	{
+		draw_letter_block(i, 5, 0xE0);
+		draw_letter_block(8, i-4, 0xE0);
+		draw_letter_block(12, i-4, 0xE0);
+	}
+	
+}
+
+void draw_M()
+{
+	for(int i = 3; i < 8; i++)
+	{
+		draw_letter_block(14, i, 0xE0);
+		draw_letter_block(18, i, 0xE0);
+	}
+	draw_letter_block(15, 4, 0xE0);
+	draw_letter_block(16, 5, 0xE0);
+	draw_letter_block(17, 4, 0xE0);
+}
+
+void draw_E(int x_offset, int y_offset)
+{
+	for(int i = 3 + y_offset; i < 8 + y_offset; i++)
+	{
+		draw_letter_block(20 + x_offset, i, 0xE0);
+	}
+	for(int i = 21 + x_offset; i < 25 + x_offset; i++)
+	{
+		draw_letter_block(i, 3 + y_offset, 0xE0);
+		draw_letter_block(i, 5 + y_offset, 0xE0);
+		draw_letter_block(i, 7 + y_offset, 0xE0);
+	}
+}
+
+void draw_O()
+{
+	for(int i = 3; i < 6; i++)
+	{
+		draw_letter_block(i, 9, 0xE0);
+		draw_letter_block(i, 13, 0xE0);
+	}
+	
+	for(int i = 10; i < 13; i++)
+	{
+		draw_letter_block(2, i, 0xE0);
+		draw_letter_block(6, i, 0xE0);
+	}
+}
+
+void draw_V()
+{
+	for(int i = 9; i < 12; i++)
+	{
+		draw_letter_block(8, i, 0xE0);
+		draw_letter_block(12, i, 0xE0);
+	}
+	draw_letter_block(9, 12, 0xE0);
+	draw_letter_block(11, 12, 0xE0);
+	draw_letter_block(10, 13, 0xE0);
+}
+
+void draw_R()
+{
+	for(int i = 9; i < 14; i++)
+	{
+		draw_letter_block(20, i, 0xE0);
+	}
+	for(int i = 21; i < 25; i++)
+	{
+		draw_letter_block(i, 9, 0xE0);
+		draw_letter_block(i, 11, 0xE0);
+	}
+	draw_letter_block(24, 10, 0xE0);
+	draw_letter_block(23, 12, 0xE0);
+	draw_letter_block(24, 13, 0xE0);
+}
+
+void draw_GAMEOVER()
+{
+	draw_G();
+	draw_A();
+	draw_M();
+	draw_E(0, 0);
+	
+	draw_O();
+	draw_V();
+	draw_E(-6, 6);
+	draw_R();
+}
 
 void create_background(uint8_t color){
 	for (int i = 0; i < 320 * 240; i++) {
@@ -121,6 +243,8 @@ void game_over(){
 	run = 0;
 	score = 0;
 	create_background(0x00);
+	draw_GAMEOVER();
+	show_framebuffer();
 }
 
 void victory()
