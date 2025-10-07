@@ -16,6 +16,7 @@ int snake_tail[2];
 int run;
 int apple_exists = 0;
 int score = 0;
+int victory = 0;
 unsigned int random_number_seed = 7269947;
 volatile uint8_t* VGA = (volatile uint8_t*) VGA_SCREEN_BUF_BASE_ADDR;
 volatile uint32_t* VGA_CTRL = (volatile uint32_t*) VGA_PIXEL_BUF_BASE_ADDR;
@@ -44,7 +45,8 @@ unsigned int pseudo_random_number_generator()
 	return random_number_seed;
 }
 
-void show_framebuffer(){
+void show_framebuffer()
+{
 	VGA_CTRL[1] = (uint32_t) VGA;
     VGA_CTRL[0] = 0;
 }
@@ -56,7 +58,8 @@ void show_framebuffer(){
 
 
 
-void draw_block(int grid_x, int grid_y, uint8_t color){
+void draw_block(int grid_x, int grid_y, uint8_t color)
+{
 	
     int position_x = GRID_OFFSET_X + grid_x * BLOCK_SIZE;
     int position_y = GRID_OFFSET_Y + grid_y * BLOCK_SIZE;
@@ -79,59 +82,82 @@ void draw_letter_block(int grid_x, int grid_y, uint8_t color)
     }
 }
 
-void draw_G()
+void draw_pixel_on_block(int grid_x, int grid_y, int pixel_offset_x, int pixel_offset_y, uint8_t color)
+{
+	int block_position_x = GRID_OFFSET_X + grid_x * BLOCK_SIZE;
+    int block_position_y = GRID_OFFSET_Y + grid_y * BLOCK_SIZE;
+	
+	int pixel_block_position_x = block_position_x + pixel_offset_x;
+	int pixel_block_position_y = block_position_y + pixel_offset_y;
+	
+	VGA[pixel_block_position_y * 320 + pixel_block_position_x] = color;
+}
+
+void draw_grid_block(int grid_x, int grid_y, uint8_t color)
+{
+	draw_block(grid_x, grid_y, color);
+	for(int i = 0; i < 20; i++)
+	{
+		draw_pixel_on_block(grid_x, grid_y, i, 0,0x03);
+		draw_pixel_on_block(grid_x, grid_y, 0, i,0x03);
+		draw_pixel_on_block(grid_x, grid_y, i, 19,0x03);
+		draw_pixel_on_block(grid_x, grid_y, 19, i,0x03);
+	}
+}
+
+void draw_G(uint8_t color)
 {
 	for(int i = 3; i < 7; i++)
 	{
-		draw_letter_block(i, 3, 0xE0);
-		draw_letter_block(i, 7, 0xE0);
+		draw_letter_block(i, 3, color);
+		draw_letter_block(i, 7, color);
 	}
 	for(int i = 4; i < 7; i ++)
 	{
-		draw_letter_block(2, i, 0xE0);
-		draw_letter_block(i, 5, 0xE0);
+		draw_letter_block(2, i, color);
+		draw_letter_block(i, 5, color);
 	}
-	draw_letter_block(6, 6, 0xE0);
+	draw_letter_block(6, 6, color);
 }
 
-void draw_A()
+void draw_A(uint8_t color)
 {
 	for(int i = 9; i < 12; i++)
 	{
-		draw_letter_block(i, 3, 0xE0);
+		draw_letter_block(i, 3, color);
 	}
 	for(int i = 8; i < 12; i++)
 	{
-		draw_letter_block(i, 5, 0xE0);
-		draw_letter_block(8, i-4, 0xE0);
-		draw_letter_block(12, i-4, 0xE0);
+		draw_letter_block(i, 5, color);
+		draw_letter_block(8, i-4, color);
+		draw_letter_block(12, i-4, color);
 	}
 	
 }
 
-void draw_M()
+void draw_M(uint8_t color)
 {
 	for(int i = 3; i < 8; i++)
 	{
-		draw_letter_block(14, i, 0xE0);
-		draw_letter_block(18, i, 0xE0);
+		draw_letter_block(14, i, color);
+		draw_letter_block(18, i, color);
 	}
-	draw_letter_block(15, 4, 0xE0);
-	draw_letter_block(16, 5, 0xE0);
-	draw_letter_block(17, 4, 0xE0);
+	draw_letter_block(15, 4, color);
+	draw_letter_block(16, 5, color);
+	draw_letter_block(17, 4, color);
 }
 
-void draw_E(int x_offset, int y_offset)
+void draw_E(int x_offset, int y_offset, uint8_t color)
 {
 	for(int i = 3 + y_offset; i < 8 + y_offset; i++)
 	{
-		draw_letter_block(20 + x_offset, i, 0xE0);
+		draw_letter_block(20 + x_offset, i, color);
 	}
 	for(int i = 21 + x_offset; i < 25 + x_offset; i++)
 	{
-		draw_letter_block(i, 3 + y_offset, 0xE0);
-		draw_letter_block(i, 5 + y_offset, 0xE0);
-		draw_letter_block(i, 7 + y_offset, 0xE0);
+		draw_letter_block(i, 3 + y_offset, color);
+		draw_letter_block(i, 5 + y_offset, color);
+		draw_letter_block(i, 7 + y_offset, color);
 	}
 }
 
@@ -180,33 +206,81 @@ void draw_R()
 
 void draw_GAMEOVER()
 {
-	draw_G();
-	draw_A();
-	draw_M();
-	draw_E(0, 0);
+	draw_G(0xE0);
+	draw_A(0xE0);
+	draw_M(0xE0);
+	draw_E(0, 0, 0xE0);
 	
 	draw_O();
 	draw_V();
-	draw_E(-6, 6);
+	draw_E(-6, 6, 0xE0);
 	draw_R();
 }
 
-void create_background(uint8_t color){
+void create_background(uint8_t color)
+{
 	for (int i = 0; i < 320 * 240; i++) {
         VGA[i] = color;
     }
 	show_framebuffer();
 }
-void create_playing_field(uint8_t color){
+
+void WIN()
+{
+	run = 0;
+	create_background(0x00);
+	draw_G(0x18);
+	draw_A(0x18);
+	draw_M(0x18);
+	draw_E(0, 0, 0x18);
+	show_framebuffer();
+}
+
+void create_playing_field(uint8_t color)
+{
 	for (int y = 0; y < 10; y++) {
         for (int x = 0; x < 10; x++) {
-            draw_block(x, y, color);
+            draw_grid_block(x, y, color);
         }
     }
 	show_framebuffer();
 }
 
-void create_snake(int color){
+void draw_snake_head(uint8_t color)
+{
+	draw_block(snake.body[0].x, snake.body[0].y, color);
+	
+}
+
+void draw_pineapple(int x, int y)
+{
+	for(int i = 10; i < 19; i++)
+	{
+		draw_pixel_on_block(x, y, 7, i, 0xFC);
+		draw_pixel_on_block(x, y, 8, i, 0xFC);
+		draw_pixel_on_block(x, y, 9, i, 0xFC);
+		draw_pixel_on_block(x, y, 10, i, 0xFC);
+		draw_pixel_on_block(x, y, 11, i, 0xFC);
+		draw_pixel_on_block(x, y, 12, i, 0xFC);
+	}
+	
+	for(int i = 7; i < 10; i++)
+	{
+		draw_pixel_on_block(x, y, 9, i, 0x1C);
+		draw_pixel_on_block(x, y, 10, i, 0x1C);
+	}
+	for(int i = 7; i < 9; i++)
+	{
+		draw_pixel_on_block(x, y, i, i+1, 0x1C);
+	}
+	draw_pixel_on_block(x, y, 11, 9, 0x1C);
+	draw_pixel_on_block(x, y, 12, 8, 0x1C);
+
+	
+}
+
+void create_snake(uint8_t color)
+{
 	
 	snake.body[0].x = 3;
 	snake.body[0].y = 3;
@@ -228,16 +302,18 @@ void lengthen_snake(char direction)
 	snake.body[snake.length].y = snake_tail[1];
 	snake.length += 1;
 	draw_block(snake_tail[0], snake_tail[1], 0x1C);
-	//if(snake.length == MAX_SNAKE_LENGTH) victory();
+	if(snake.length == MAX_SNAKE_LENGTH) victory = 1;
 }
 
-void increment_score(){
+void increment_score()
+{
     /*  */
 	score += 1;
 	set_score(score);
 }
 
-void game_over(){
+void game_over()
+{
     /*  */
 		
 	run = 0;
@@ -247,19 +323,14 @@ void game_over(){
 	show_framebuffer();
 }
 
-void victory()
+void move_snake()
 {
-	run = 0;
-	create_background(0x02);
-}
-
-void move_snake(){
     /*  */	
 	
 	
 	snake_tail[0] = snake.body[snake.length-1].x;
 	snake_tail[1] = snake.body[snake.length-1].y;
-	draw_block(snake_tail[0], snake_tail[1], 0x00);
+	draw_grid_block(snake_tail[0], snake_tail[1], 0x00);
 	
 	for(int i = snake.length - 1; i>0; i--)
 	{
@@ -286,7 +357,8 @@ void move_snake(){
 	}
 }
 
-void change_direction(char turn){
+void change_direction(char turn)
+{
     /* */
 	
 	if(turn == 'R')
@@ -358,7 +430,7 @@ int is_block_snake(int x, int y)
 	return 0;
 }
 
-void spawn_apple(Apple* apple, int color)
+void spawn_apple(Apple* apple)
 {	
 
 	int random_mod_ten = pseudo_random_number_generator()%10;
@@ -374,7 +446,7 @@ void spawn_apple(Apple* apple, int color)
 				{
 					apple->x = x;
 					apple->y = y;
-					draw_block(apple->x, apple->y, color);
+					draw_pineapple(apple->x, apple->y);
 					apple_exists = 1;
 					return;
 				}
@@ -383,17 +455,18 @@ void spawn_apple(Apple* apple, int color)
 	}
 }
 
-void create_first_apple(Apple* apple, int color)
+void create_first_apple(Apple* apple)
 {
 	/*  */
 	
 	apple->x = 5;
 	apple->y = 5;
-	draw_block(apple->x, apple->y, color);
+	draw_pineapple(apple->x, apple->y);
 	apple_exists = 1;
 }
 
-void check_collision(Apple* apple){
+void check_collision(Apple* apple)
+{
     /*  */
 		
 	if(is_head_outside_map())
@@ -415,28 +488,30 @@ void check_collision(Apple* apple){
 		increment_score();
 		while(!apple_exists)
 		{
-			spawn_apple(apple, 0xEC);
+			spawn_apple(apple);
 		}		
 	}
 
 }
 
-
-void game_init(){
+void game_init()
+{
     /*  */
 	
 	run = 1;
 	create_background(0xE0);
 	create_playing_field(0x00);
 	init_display();
-	create_first_apple(&apple, 0xEC);
+	create_first_apple(&apple);
 	create_snake(0x1C);
 }
 
-void game(){
+void game()
+{
     /*  */
 		
 	move_snake();
 	check_collision(&apple);
 	show_framebuffer();
+	if(victory) WIN();
 }
