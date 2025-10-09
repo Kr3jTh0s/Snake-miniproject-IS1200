@@ -5,8 +5,8 @@ Game logic for snake game, gamelogic.c.
 #include <stdint.h>
 #include "gameobjects.h"
 
-Snake snake;
-Apple apple;
+Snake snake;					//Intialize struct
+Apple apple;					//Intialize struct
 
 extern void init_display();
 extern void set_score();
@@ -17,25 +17,31 @@ int run;
 int apple_exists = 0;
 int score = 0;
 int victory = 0;
-unsigned int random_number_seed = 7269947;
+unsigned int random_number_seed = 7269947;	//Arbitrary
 volatile uint8_t* VGA = (volatile uint8_t*) VGA_SCREEN_BUF_BASE_ADDR;
 volatile uint32_t* VGA_CTRL = (volatile uint32_t*) VGA_PIXEL_BUF_BASE_ADDR;
 
 
 int get_sw()
 {
-  volatile uint32_t *sw = (volatile uint32_t *)SWITCH_BASE_ADDR;
-  return (*sw) & GAME_SWITCH;
+	/*Returns value stored on address of first switch. --Alexander*/
+	
+	volatile uint32_t *sw = (volatile uint32_t *)SWITCH_BASE_ADDR;
+	return (*sw) & GAME_SWITCH;
 }
 
 int get_btn()
 {
-  volatile uint8_t *btn = (volatile uint8_t *)BTN_BASE_ADDR;
-  return (*btn) & BTN_MASK;
+	/*Returns value on btn 1, detects if pressed. --Alexander*/
+	
+	volatile uint8_t *btn = (volatile uint8_t *)BTN_BASE_ADDR;
+	return (*btn) & BTN_MASK;
 }
 
 unsigned int pseudo_random_number_generator()
 {
+	/*Generates a PRN with the help of the seed defined above. --Magnus*/
+	
 	unsigned int offset = 81440;
 	unsigned int base = 5097217;
 	unsigned int bit_mask = 0x0fffff;
@@ -47,8 +53,10 @@ unsigned int pseudo_random_number_generator()
 
 void show_framebuffer()
 {
-	VGA_CTRL[1] = (uint32_t) VGA;
-    VGA_CTRL[0] = 0;
+	/*Updates the frambuffer and shows graphics onto the screen. --Alexander*/
+	
+	VGA_CTRL[1] = (uint32_t) VGA;	//Starts displaying from this address.
+    VGA_CTRL[0] = 0;				//Triggers the swap.
 }
 
 
@@ -60,23 +68,27 @@ void show_framebuffer()
 
 void draw_block(int grid_x, int grid_y, uint8_t color)
 {
+	/*Draws a 20x20 pixel block of given color onto a 10x10 grid centered on the screen.
+	The grid is composed of these blocks, 100 total and is the playing field. --Magnus*/
 	
     int position_x = GRID_OFFSET_X + grid_x * BLOCK_SIZE;
     int position_y = GRID_OFFSET_Y + grid_y * BLOCK_SIZE;
 
     for (int y = 0; y < BLOCK_SIZE; y++) {
         for (int x = 0; x < BLOCK_SIZE; x++) {
-            VGA[(position_y + y) * 320 + (position_x + x)] = color;
+            VGA[(position_y + y) * 320 + (position_x + x)] = color;	//Writes pixels to the linear screenbuffer.
         }
     }
 }
 
 void draw_letter_block(int grid_x, int grid_y, uint8_t color)
 {	
+	/*Draws a smaller 10x10 block with a different offset, used specifically for game over. --Magnus*/
+
 	int position_x = TEXT_OFFSET_X + grid_x * LETTER_BLOCK_SIZE;
     int position_y = TEXT_OFFSET_y + grid_y * LETTER_BLOCK_SIZE;
-	for (int y = 0; y < 10; y++) {
-        for (int x = 0; x < 10; x++) {
+	for (int y = 0; y < LETTER_BLOCK_SIZE; y++) {
+        for (int x = 0; x < LETTER_BLOCK_SIZE; x++) {
             VGA[(position_y + y) * 320 + (position_x + x)] = color;
         }
     }
@@ -84,6 +96,9 @@ void draw_letter_block(int grid_x, int grid_y, uint8_t color)
 
 void draw_pixel_on_block(int grid_x, int grid_y, int pixel_offset_x, int pixel_offset_y, uint8_t color)
 {
+	/*Draws a single pixel on a block on the playing field (10x10 grid) that 
+	has the coordinates (grid_x, grid_y). The pixel offset is where on the block the pixel is drawn. --Magnus*/
+	
 	int block_position_x = GRID_OFFSET_X + grid_x * BLOCK_SIZE;
     int block_position_y = GRID_OFFSET_Y + grid_y * BLOCK_SIZE;
 	
@@ -95,6 +110,9 @@ void draw_pixel_on_block(int grid_x, int grid_y, int pixel_offset_x, int pixel_o
 
 void draw_grid_block(int grid_x, int grid_y, uint8_t color)
 {
+	/*Draws the blocks that compose the 10x10 playing field of the snake.
+	They are black with blue borders. --Magnus*/
+	
 	draw_block(grid_x, grid_y, color);
 	for(int i = 0; i < 20; i++)
 	{
@@ -107,6 +125,8 @@ void draw_grid_block(int grid_x, int grid_y, uint8_t color)
 
 void draw_G(uint8_t color)
 {
+	/*Specific function for drawing a G on a specific offset, part of GAMEOVER and WIN. --Magnus*/
+	
 	for(int i = 3; i < 7; i++)
 	{
 		draw_letter_block(i, 3, color);
@@ -122,6 +142,8 @@ void draw_G(uint8_t color)
 
 void draw_A(uint8_t color)
 {
+	/*Specific function for drawing an A on a specific offset, part of GAMEOVER and WIN. --Magnus*/
+	
 	for(int i = 9; i < 12; i++)
 	{
 		draw_letter_block(i, 3, color);
@@ -137,6 +159,8 @@ void draw_A(uint8_t color)
 
 void draw_M(uint8_t color)
 {
+	/*Specific function for drawing an M on a specific offset, part of GAMEOVER and WIN. --Magnus*/
+	
 	for(int i = 3; i < 8; i++)
 	{
 		draw_letter_block(14, i, color);
@@ -149,6 +173,8 @@ void draw_M(uint8_t color)
 
 void draw_E(int x_offset, int y_offset, uint8_t color)
 {
+	/*Specific function for drawing an E on a given offset, part of GAMEOVER and WIN. --Magnus*/
+	
 	for(int i = 3 + y_offset; i < 8 + y_offset; i++)
 	{
 		draw_letter_block(20 + x_offset, i, color);
@@ -163,6 +189,8 @@ void draw_E(int x_offset, int y_offset, uint8_t color)
 
 void draw_O()
 {
+	/*Specific function for drawing an O on a specific offset, part of GAMEOVER and WIN. --Magnus*/
+	
 	for(int i = 3; i < 6; i++)
 	{
 		draw_letter_block(i, 9, 0xE0);
@@ -178,6 +206,8 @@ void draw_O()
 
 void draw_V()
 {
+	/*Specific function for drawing a V on a specific offset, part of GAMEOVER and WIN. --Magnus*/
+	
 	for(int i = 9; i < 12; i++)
 	{
 		draw_letter_block(8, i, 0xE0);
@@ -190,6 +220,8 @@ void draw_V()
 
 void draw_R()
 {
+	/*Specific function for drawing an R on a specific offset, part of GAMEOVER and WIN. --Magnus*/
+	
 	for(int i = 9; i < 14; i++)
 	{
 		draw_letter_block(20, i, 0xE0);
@@ -206,6 +238,8 @@ void draw_R()
 
 void draw_GAMEOVER()
 {
+	/*Uses the letter drawing functions to compose the message GAME (above) and OVER (below).*/
+	
 	draw_G(0xE0);
 	draw_A(0xE0);
 	draw_M(0xE0);
@@ -219,6 +253,8 @@ void draw_GAMEOVER()
 
 void create_background(uint8_t color)
 {
+	/*Fills the entire screen with a given color. --Magnus*/
+	
 	for (int i = 0; i < 320 * 240; i++) {
         VGA[i] = color;
     }
@@ -227,6 +263,10 @@ void create_background(uint8_t color)
 
 void WIN()
 {
+	/*Called if 99 apples are eaten, will end the game loop,
+	create a black screen with the green letters GAME. The game can be reset simply
+	with btn 1. --Magnus*/
+	
 	run = 0;
 	create_background(0x00);
 	draw_G(0x18);
@@ -238,6 +278,8 @@ void WIN()
 
 void create_playing_field(uint8_t color)
 {
+	/*Creates the 10x10 grid for the snake to play on. --Magnus*/
+	
 	for (int y = 0; y < 10; y++) {
         for (int x = 0; x < 10; x++) {
             draw_grid_block(x, y, color);
@@ -248,12 +290,15 @@ void create_playing_field(uint8_t color)
 
 void draw_snake_head(uint8_t color)
 {
-	draw_block(snake.body[0].x, snake.body[0].y, color);
+	/*Draws the snake head. --Magnus*/
 	
+	draw_block(snake.body[0].x, snake.body[0].y, color);	
 }
 
 void draw_pineapple(int x, int y)
 {
+	/*Draws a pineapple on given grid position (x,y). --Magnus*/
+	
 	for(int i = 10; i < 19; i++)
 	{
 		draw_pixel_on_block(x, y, 7, i, 0xFC);
@@ -281,6 +326,8 @@ void draw_pineapple(int x, int y)
 
 void create_snake(uint8_t color)
 {
+	/*Assigns snake struct coordinates for the snake head, its direction, length and it is then drawn
+	on said coordinates. --Magnus*/
 	
 	snake.body[0].x = 3;
 	snake.body[0].y = 3;
@@ -294,10 +341,10 @@ void create_snake(uint8_t color)
 
 void lengthen_snake(char direction)
 {
-	/*  increase length of snake body by a constant amount
-        snake.length += 1 */
+	/*  increase length of snake body by a 1, and reassigns the tail to 
+	one block behind the snake and draws a new snake segment there. Function
+	also checks if snake is of length 100 (max). --Magnus*/
 	
-	//
 	snake.body[snake.length].x = snake_tail[0];
 	snake.body[snake.length].y = snake_tail[1];
 	snake.length += 1;
@@ -307,14 +354,16 @@ void lengthen_snake(char direction)
 
 void increment_score()
 {
-    /*  */
+    /*Increments the score and calls set_score() from display.c that updates
+	the score onto the seven segment displays on the board. --Magnus*/
+	
 	score += 1;
 	set_score(score);
 }
 
 void game_over()
 {
-    /*  */
+    /*Exits the game loop, sets score to 0 and displays GAMEOVER. --Magnus*/
 		
 	run = 0;
 	score = 0;
@@ -325,18 +374,19 @@ void game_over()
 
 void move_snake()
 {
-    /*  */	
+    /*Updates the position of the snake first and draws new tail,
+	thereafter checks direction and redraws rest of snake.*/	
 	
 	
-	snake_tail[0] = snake.body[snake.length-1].x;
-	snake_tail[1] = snake.body[snake.length-1].y;
+	snake_tail[0] = snake.body[snake.length-1].x;			//Tails is saved so that it is not forgotten
+	snake_tail[1] = snake.body[snake.length-1].y;			// in following loop.
 	draw_grid_block(snake_tail[0], snake_tail[1], 0x00);
 	
-	for(int i = snake.length - 1; i>0; i--)
+	for(int i = snake.length - 1; i>0; i--)					//Reassign position of all snake segments tail to head.
 	{
 		snake.body[i] = snake.body[i-1];
 	}
-	switch(snake.direction)
+	switch(snake.direction)									//Updates head position based on direction.
 	{
 		case 'R':
 			snake.body[0].x += 1;
@@ -351,7 +401,7 @@ void move_snake()
 			snake.body[0].y += 1;
 			break;
 	}
-	for(int i = 0; i < snake.length; i++)
+	for(int i = 0; i < snake.length; i++)					//Redraw snake.
 	{
 		draw_block(snake.body[i].x, snake.body[i].y, 0x1C);
 	}
@@ -359,7 +409,8 @@ void move_snake()
 
 void change_direction(char turn)
 {
-    /* */
+    /*Based on value of switch 1, snake turns right or left, this function changes direction
+		depending on turn value when btn is pressed. --Magnus*/
 	
 	if(turn == 'R')
 	{
@@ -401,6 +452,8 @@ void change_direction(char turn)
 
 int is_head_on_body()
 {
+	/*Checks if snake head coordinates are same as any other snake segment. --Magnus*/
+	
 	for(int i = 1; i < snake.length; i++)
 	{
 		if(snake.body[0].x == snake.body[i].x && snake.body[0].y == snake.body[i].y) return 1;
@@ -410,6 +463,8 @@ int is_head_on_body()
 
 int is_head_outside_map()
 {
+	/*Checks if snake head coordinates fall outside of 10x10 playing field. --Magnus*/
+	
 	if((snake.body[0].x >= GRID_LIMIT || snake.body[0].x < 0) ||
 		(snake.body[0].y >= GRID_LIMIT || snake.body[0].y < 0)) return 1;
 	return 0;
@@ -417,12 +472,16 @@ int is_head_outside_map()
 
 int is_head_on_apple(Apple* apple)
 {
+	/*Checks if snake head coordinates are the same as apple. --Magnus*/
+	
 	if(snake.body[0].x == apple->x && snake.body[0].y == apple->y) return 1;
 	return 0;
 }
 
 int is_block_snake(int x, int y)
 {
+	/*Checks if a block given by (x,y) is part of the snake or not. --Magnus*/
+	
 	for(int i = 0; i < snake.length; i++)
 	{
 		if(snake.body[i].x == x && snake.body[i].y == y) return 1;
@@ -432,22 +491,24 @@ int is_block_snake(int x, int y)
 
 void spawn_apple(Apple* apple)
 {	
+	/*Uses the PRNG and is_block_snake to randomly spawn an apple on a grid position
+		that is not occupied by snake. --Magnus*/
 
-	int random_mod_ten = pseudo_random_number_generator()%10;
+	int random_mod_ten = pseudo_random_number_generator()%10;	//random number mod 10 so that it can translate to grid coordinates.
 	if(!apple_exists)
 	{
 		for(int i = 0; i < 10; i++)
 		{
-			int y = (random_mod_ten+i)%10;
+			int y = (random_mod_ten+i)%10;						//Calculate y coordinate
 			for(int j = 0; j < 10; j++)
 			{
-				int x = (random_mod_ten+j)%10;
-				if(!is_block_snake(x, y))
+				int x = (random_mod_ten+j)%10;					//Calculate x coordinate
+				if(!is_block_snake(x, y))						//Check if randomly chosen block is snake
 				{
-					apple->x = x;
+					apple->x = x;								//Assign apple coordinates to block and draw pineapple
 					apple->y = y;
 					draw_pineapple(apple->x, apple->y);
-					apple_exists = 1;
+					apple_exists = 1;							//Prevents apples from spawning
 					return;
 				}
 			}
@@ -457,7 +518,7 @@ void spawn_apple(Apple* apple)
 
 void create_first_apple(Apple* apple)
 {
-	/*  */
+	/*Spawns the first apple on specific position and prevents apple spawn until it is eaten. --Magnus  */
 	
 	apple->x = 5;
 	apple->y = 5;
@@ -467,27 +528,27 @@ void create_first_apple(Apple* apple)
 
 void check_collision(Apple* apple)
 {
-    /*  */
+    /*Checks if snake head collides with: snake, outside of grid or apple and responds appropriately. --Magnus*/
 		
-	if(is_head_outside_map())
+	if(is_head_outside_map())	//End game if head is outside map or on body
 	{
 		game_over();
 		return;
 	}
 	
-	if(is_head_on_body())
+	if(is_head_on_body())		//
 	{
 		game_over();
 		return;
 	}
 	
-	if(is_head_on_apple(apple))
+	if(is_head_on_apple(apple))				//If head is on apple: 
 	{	
-		apple_exists = 0;
-		lengthen_snake(snake.direction);
-		increment_score();
-		while(!apple_exists)
-		{
+		apple_exists = 0;					//enables apple spawns
+		lengthen_snake(snake.direction);	
+		increment_score();					
+		while(!apple_exists)				//Continuously attempts to spawn apple until it succeeds.
+		{										
 			spawn_apple(apple);
 		}		
 	}
@@ -496,7 +557,8 @@ void check_collision(Apple* apple)
 
 void game_init()
 {
-    /*  */
+    /*Initialises the game, starts game loop run = 1, creates background and playing grid, sets the score on leds
+		to 0, spawns apple and snake. --Magnus*/
 	
 	run = 1;
 	create_background(0xE0);
@@ -508,7 +570,7 @@ void game_init()
 
 void game()
 {
-    /*  */
+    /*Checks for victory and collisions while moving the snake. --Magnus */
 		
 	move_snake();
 	check_collision(&apple);

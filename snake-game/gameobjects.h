@@ -12,7 +12,7 @@ extern void delay(int);
 extern int nextprime(int);
 extern void enable_interrupt(void);
 
-// Hardware base addresses and offset
+// Hardware base addresses and offset. --Alexander
 #define LED_BASE_ADDR 0x04000000
 #define DISPLAY_BASE_ADDR 0x04000050
 #define DISPLAY_OFFSET 0x10
@@ -52,7 +52,7 @@ void handle_interrupt(unsigned cause);
 int VGA_function();
 void display_modifier();
 
-
+//Creates relevant structs. --Magnus
 typedef struct Point{
     int x;
     int y;

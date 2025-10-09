@@ -10,7 +10,7 @@ extern int run;
 extern volatile uint8_t* VGA;
 extern volatile uint32_t* VGA_CTRL;
 
-volatile int move_snake_mark = 0;
+volatile int move_snake_mark = 0;		
 
 static inline int check_timeout()
 {
