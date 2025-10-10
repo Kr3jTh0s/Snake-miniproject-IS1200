@@ -10,15 +10,7 @@ extern int run;
 extern volatile uint8_t* VGA;
 extern volatile uint32_t* VGA_CTRL;
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-volatile int move_snake_mark = 0;		
-=======
 volatile int move_snake_mark = 0;	//Decides if snake is allowed to move	
->>>>>>> Stashed changes
-=======
-volatile int move_snake_mark = 0;	//Decides if snake is allowed to move	
->>>>>>> Stashed changes
 
 static inline int check_timeout()
 {
