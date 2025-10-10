@@ -1,4 +1,4 @@
-/**/
+/*Magnus + Alexander*/
 #include <stdint.h>
 #include "gameobjects.h"
 

@@ -3,13 +3,6 @@ Header file for snake game, gameobjects.h.
 */
 
 /* Below functions are external and found in other files. */
-extern void print(const char *);
-extern void print_dec(unsigned int);
-extern void display_string(char *);
-extern void time2string(char *, int);
-extern void tick(int *);
-extern void delay(int);
-extern int nextprime(int);
 extern void enable_interrupt(void);
 
 // Hardware base addresses and offset. --Alexander

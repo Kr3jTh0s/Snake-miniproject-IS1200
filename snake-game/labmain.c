@@ -10,10 +10,16 @@ extern int run;
 extern volatile uint8_t* VGA;
 extern volatile uint32_t* VGA_CTRL;
 
+<<<<<<< Updated upstream
 volatile int move_snake_mark = 0;		
+=======
+volatile int move_snake_mark = 0;	//Decides if snake is allowed to move	
+>>>>>>> Stashed changes
 
 static inline int check_timeout()
 {
+  /*Alexander*/
+
   volatile uint32_t *timer_status = (volatile uint32_t *)(TIMER_BASE_ADDR);
   if ((*timer_status & 0x1) == 0x1)
   {
@@ -26,6 +32,8 @@ static inline int check_timeout()
 
 void handle_interrupt(unsigned cause)
 {
+  /*Magnus + Alexander*/
+
   volatile uint32_t *timer_status = (volatile uint32_t *)TIMER_BASE_ADDR;
   volatile uint32_t* sw_data = (volatile uint32_t*)SWITCH_BASE_ADDR;
   volatile uint32_t* btn_edge = (volatile uint32_t*)(BTN_BASE_ADDR + 0xC);
@@ -57,6 +65,8 @@ void handle_interrupt(unsigned cause)
 
 void init(void)
 {
+  /*Alexander*/
+
 	volatile uint32_t *timer_periodl = (volatile uint32_t *)(TIMER_BASE_ADDR + TIMER_PERIODL_OFFSET);
 	volatile uint32_t *timer_periodh = (volatile uint32_t *)(TIMER_BASE_ADDR + TIMER_PERIODH_OFFSET);
 	volatile uint32_t *timer_control = (volatile uint32_t *)(TIMER_BASE_ADDR + TIMER_CONTROL_OFFSET);
@@ -79,21 +89,22 @@ void init(void)
 
 int main()
 {
+  /*Magnus*/
 
   	init();
-	while(1)
+	while(1)                                            //Infinite loop until board restart button 2 is pressed.
 	{
 		game_init();
-		while (run) 
+		while (run)                                 //Game loop
 		{
-			if(move_snake_mark)
+			if(move_snake_mark)                 //If timer interrupt occurs move snake and reset mark
 			{
 				move_snake_mark = 0;
 				game();
 			}
 		}
 		
-		while(get_btn() == 0)
+		while(get_btn() == 0)                      //If a game over is triggered: run=0 and program waits for btn 1 press forever.
 		{
 			
 		}
